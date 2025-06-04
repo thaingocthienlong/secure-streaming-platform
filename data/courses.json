@@ -8,13 +8,13 @@
         "videos": [
           {
             "title": "Welcome to React",
-            "muxPlaybackId": "w2nVQVwo2ykhBf02XOhmk501YdTWI02D2YRWv8FAB02DVec",
+            "kid": "3a1f2e4c5b6a7d8e9f0a1b2c3d4e5f6a",
             "duration": "5:32"
           },
           {
 
             "title": "JSX Deep Dive",
-            "muxPlaybackId": "fP1j013ytVzU01GUmq4S023EswBURvwpL3KlPk006kd9j300",
+            "kid": "3a1f2e4c5b6a7d8e9f0a1b2c3d4e5f6a",
             "duration": "8:45"
           }
         ]
@@ -24,7 +24,7 @@
         "videos": [
           {
             "title": "State Management",
-            "muxPlaybackId": "mv01bPqwVOADvgzSxwJGiLRRcoV02Aj5vNudZnvsZFP6Y",
+            "kid": "3a1f2e4c5b6a7d8e9f0a1b2c3d4e5f6a",
             "duration": "10:15"
           }
         ]
@@ -40,7 +40,7 @@
         "videos": [
           {
             "title": "Installing Node",
-            "muxPlaybackId": "w2nVQVwo2ykhBf02XOhmk501YdTWI02D2YRWv8FAB02DVec",
+            "kid": "3a1f2e4c5b6a7d8e9f0a1b2c3d4e5f6a",
             "duration": "4:20"
           }
         ]
