@@ -4,6 +4,8 @@
 
 **URL:**  
 
+POST /api/drm/license
+
 **Headers:**  
 - `Content-Type: application/octet-stream`  
 - `Authorization: Bearer <entitlement-JWT>`
