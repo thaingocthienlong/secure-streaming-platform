@@ -1,0 +1,50 @@
+{
+  "REACT101": {
+    "title": "React for Beginners",
+    "description": "Learn the basics of React",
+    "sections": [
+      {
+        "title": "Introduction",
+        "videos": [
+          {
+            "title": "Welcome to React",
+            "muxPlaybackId": "w2nVQVwo2ykhBf02XOhmk501YdTWI02D2YRWv8FAB02DVec",
+            "duration": "5:32"
+          },
+          {
+
+            "title": "JSX Deep Dive",
+            "muxPlaybackId": "fP1j013ytVzU01GUmq4S023EswBURvwpL3KlPk006kd9j300",
+            "duration": "8:45"
+          }
+        ]
+      },
+      {
+        "title": "State & Props",
+        "videos": [
+          {
+            "title": "State Management",
+            "muxPlaybackId": "mv01bPqwVOADvgzSxwJGiLRRcoV02Aj5vNudZnvsZFP6Y",
+            "duration": "10:15"
+          }
+        ]
+      }
+    ]
+  },
+  "NODE101": {
+    "title": "Node.js Fundamentals",
+    "description": "Introduction to Node.js",
+    "sections": [
+      {
+        "title": "Setup",
+        "videos": [
+          {
+            "title": "Installing Node",
+            "muxPlaybackId": "w2nVQVwo2ykhBf02XOhmk501YdTWI02D2YRWv8FAB02DVec",
+            "duration": "4:20"
+          }
+        ]
+      }
+    ]
+  }
+}
