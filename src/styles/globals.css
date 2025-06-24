@@ -5,5 +5,5 @@
 
 /* Custom base styles */
 html, body {
-  @apply text-gray-800 antialiased;
+  @apply antialiased;
 }

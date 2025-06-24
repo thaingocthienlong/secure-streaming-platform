@@ -30,7 +30,7 @@ export default function Home() {
       >
         <Toolbar sx={{ justifyContent: 'space-between', minHeight: 64 }}>
           <Typography variant="h6" color="white">
-            Viện Phương Nam
+            Video Streaming Platform
           </Typography>
           <Button color="info" onClick={() => setOpen(true)}>
             Đăng nhập

@@ -1,19 +1,13 @@
 // pages/api/drm/clearkey.ts
-
 export const config = { api: { bodyParser: false } }
-
 import type { NextApiRequest, NextApiResponse } from 'next'
 import AWS from 'aws-sdk'
 import fs from 'fs'
 import path from 'path'
 
-// AWS KMS client
 const kms = new AWS.KMS({ region: process.env.AWS_REGION })
-
-// Path to keystore.json (from your .env.local)
 const KEYSTORE_PATH = path.resolve(process.cwd(), process.env.KEYSTORE_JSON!)
 
-// Keystore entry type
 interface KeystoreEntry { ciphertext: string; createdAt: string }
 type Keystore = Record<string, KeystoreEntry>
 
@@ -31,30 +25,81 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // 1) Read raw body
+    // 1) Read the raw body into a Buffer
     const rawBody: Buffer = req.body instanceof Buffer
       ? req.body
       : await new Promise<Buffer>((resolve, reject) => {
           const chunks: Buffer[] = []
-          req.on('data', c => chunks.push(c as Buffer))
+          req.on('data', c => chunks.push(typeof c === 'string' ? Buffer.from(c) : c))
           req.on('end', () => resolve(Buffer.concat(chunks)))
-          req.on('error', e => reject(e))
+          req.on('error', reject)
         })
 
-    console.log('↪ [clearkey] raw length =', rawBody.length)
+    console.log('↪ [clearkey] rawBody length =', rawBody.length)
 
-    // 2) Load the keystore
+    // 2) Try parsing as JSON { kids: [ base64 ], type: ... }
+    let kidBuffers: Buffer[] = []
+    try {
+      const json = JSON.parse(rawBody.toString('utf8'))
+      console.log('↪ [clearkey] JSON request body =', json)
+      if (!Array.isArray(json.kids) || json.kids.length === 0) {
+        throw new Error('Missing kids array')
+      }
+      kidBuffers = json.kids.map((b64: string) => Buffer.from(b64, 'base64'))
+    } catch (_e) {
+      // 3) Fallback to CENC PSSH parsing
+      console.log('↪ [clearkey] Falling back to PSSH parsing')
+      if (rawBody.length < 48) {
+        return res.status(400).json({ error: 'initData too short; cannot parse KID' })
+      }
+      const count = rawBody.readUInt32BE(28)  // number of KIDs
+      console.log('↪ [clearkey] PSSH kidCount =', count)
+      for (let i = 0; i < count; i++) {
+        const offset = 32 + i * 16
+        if (rawBody.length >= offset + 16) {
+          kidBuffers.push(rawBody.subarray(offset, offset + 16))
+        }
+      }
+      if (kidBuffers.length === 0) {
+        return res.status(400).json({ error: 'No KIDs extracted' })
+      }
+    }
+
+    // 4) Load your keystore.json
+    if (!fs.existsSync(KEYSTORE_PATH)) {
+      return res.status(500).json({ error: `Keystore not found at ${KEYSTORE_PATH}` })
+    }
     let raw = fs.readFileSync(KEYSTORE_PATH, 'utf8')
-    if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1)
+    // strip BOM or garbage before '{'
+    const b = raw.indexOf('{')
+    if (b > 0) raw = raw.slice(b)
     const keystore: Keystore = JSON.parse(raw)
     console.log('↪ [clearkey] available KIDs =', Object.keys(keystore))
 
-    // TODO: JSON vs. PSSH parsing here → extract kid buffers
-    // TODO: unwrap each via unwrapDataKey(), build { keys: [ { kty, kid, k } ] }
+    // 5) For each requested KID, decrypt and build the ClearKey response
+    const keys = []
+    for (const buf of kidBuffers) {
+      const hex = buf.toString('hex')
+      console.log('↪ [clearkey] processing kidHex =', hex)
+      const entry = keystore[hex]
+      if (!entry) {
+        return res.status(403).json({ error: `KID ${hex} not found in keystore` })
+      }
+      const plaintext = await unwrapDataKey(entry.ciphertext)
+      keys.push({
+        kty: 'oct' as const,
+        kid: buf.toString('base64').replace(/=+$/, ''),
+        k:   plaintext.toString('base64').replace(/=+$/, ''),
+      })
+    }
 
-    return res.status(200).json({ keys: [] })
-  } catch (e: any) {
-    console.error(e)
-    return res.status(500).json({ error: e.message })
+    const response = { keys }
+    console.log('↪ [clearkey] response JSON =', response)
+    res.setHeader('Content-Type', 'application/json')
+    return res.status(200).json(response)
+
+  } catch (err: any) {
+    console.error('Error in /api/drm/clearkey:', err)
+    return res.status(500).json({ error: err.message || 'Unknown error' })
   }
 }
